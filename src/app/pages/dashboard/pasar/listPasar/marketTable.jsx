@@ -32,18 +32,31 @@ const PasarPage = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (confirm("Yakin ingin menghapus pasar ini?")) {
-      try {
-        await fetch(`${BASE_URL}/api/pasar/${id}`, {
-          method: "DELETE",
-        });
-        setPasars(pasars.filter((p) => p.id !== id));
-      } catch (err) {
-        console.error("Gagal menghapus:", err);
-      }
-    }
-  };
+const handleDelete = async (id) => {
+  const authToken = localStorage.getItem("authToken");
+  const confirmDelete = confirm("Yakin ingin menghapus pasar ini?");
+  if (!confirmDelete) return;
+
+  const response = await fetch(`${BASE_URL}/api/pasar/${id}`, {
+    method: "DELETE",
+    headers: {
+      ...(authToken && { Authorization: `Bearer ${authToken}` }),
+    },
+  });
+
+  const result = await response.json();
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || "Gagal menghapus data dari server.");
+  }
+
+  // Hapus dari state lokal
+  setPasars((prev) => prev.filter((p) => p.id !== id));
+
+  alert("✅ Pasar berhasil dihapus.");
+};
+
+
 
   const handleSubmit = async (formData) => {
     const authToken = localStorage.getItem("authToken");
